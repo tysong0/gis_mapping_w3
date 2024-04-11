@@ -4,10 +4,15 @@ body {
     padding: 0;
 }
 
-#map {
+#title {
+    position: relative;
+    text-align: center;
+}
+
+#container {
+    padding-top: 100px;
     position: absolute;
-    top: 0;
-    bottom: 0;
+    height: 90%;
     width: 100%;
 }
 

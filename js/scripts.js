@@ -5,55 +5,66 @@
 
 var STARTING_CENTER = [-73.9, 40.7]
 
+// Set bounds to San Francisco, California.
+const bounds = [
+    [-144.75460, 10.14845], // Southwest coordinates
+    [-44.18682, 60.65736] // Northeast coordinates
+];
+
 mapboxgl.accessToken = 'pk.eyJ1IjoidGlhbnlzb25nIiwiYSI6ImNsdWx1OGVodzBqcWwyaW9hOW1oaWRnOWwifQ.E4RNl8ESZulQlGSzXECAMw';
 const map = new mapboxgl.Map({
-    container: 'map', // container ID
+    container: 'container', // container ID
     center: STARTING_CENTER, // starting position [lng, lat]
-    style: 'mapbox://styles/mapbox/navigation-night-v1',
+    style: 'mapbox://styles/mapbox/outdoors-v12',
     zoom: 10, // starting zoom
-    bearing: 30,
+    maxBounds: bounds // Set the map's geographical boundaries.
 })
 
-// create the popup
-const classbuilding = new mapboxgl.Popup({ offset: 25 }).setText(
-    '60 5th Avenue.',
-);
-
-// Create a default Marker and add it to the map.
-const marker1 = new mapboxgl.Marker()
-    .setLngLat(STARTING_CENTER)
-    .addTo(map)
-    .setPopup(classbuilding) // sets a popup on this marker
-    .addTo(map);
-
-
-// Create a popup, but don't add it to the map yet.
-const popup = new mapboxgl.Popup({
-    closeButton: false,
-    closeOnClick: false
+map.on('load', function () {
+    map.resize();
 });
 
+//iterate
+earthquakes.forEach(function(earthquakerecord) {
+   
+    var magnitude = earthquakerecord.mag;
+    var colour;
+    var utcDate = `${earthquakerecord.time}`;  // ISO-8601 formatted date returned from the list
+    var localDate = new Date(utcDate);
 
-    map.on('mouseenter', 'places', (e) => {
-        // Change the cursor style as a UI indicator.
-        map.getCanvas().style.cursor = 'pointer';
 
-        // Ensure that if the map is zoomed out such that multiple
-        // copies of the feature are visible, the popup appears
-        // over the copy being pointed to.
-        while (Math.abs(e.lngLat.lng - STARTING_CENTER[0]) > 180) {
-            STARTING_CENTER[0] += e.lngLat.lng > STARTING_CENTER[0] ? 360 : -360;
-        }
+    // If the earthquake is more significant than M5.0
+    if (magnitude >= 5.0) {
+      colour = "red";
+    
+    // If the earthquake is between M4.0 and 5.0
+    } else if (magnitude >= 4.0 ) {
+      colour = "orange";
+    
+    // If the earthquake is more minor than M4.0
+    } else {
+      colour = "yellow";
+    }
 
-        // Populate the popup and set its coordinates
-        // based on the feature found.
-        popup.setLngLat(STARTING_CENTER).setHTML("AA").addTo(map);
-    });
+    //create popup of quake info
+    const popup = new mapboxgl.Popup({ 
+        offset: 40,
+        anchor: 'bottom'
+    }).setText(
+        `This is a M${earthquakerecord.mag} earthquake, happened at ${localDate}.`
+    );
 
-    map.on('mouseleave', 'places', () => {
-        map.getCanvas().style.cursor = '';
-        popup.remove();
-    });
+    //create the markers
+    new mapboxgl.Marker({ 
+    color: colour 
+    })
+    .setLngLat([earthquakerecord.longitude, earthquakerecord.latitude])
+    .setPopup(popup)
+    .addTo(map);
+})
+
+// add a scale to the map
+map.addControl(new mapboxgl.ScaleControl());
 
 
 
